@@ -63,7 +63,7 @@
   - 自反性
   - 对称性
   - 传递性
-  - 一致性
+  - 一致性 
 - Object的hashcode
 
 ### Reflection
