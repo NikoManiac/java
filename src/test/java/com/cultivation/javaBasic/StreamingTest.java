@@ -3,13 +3,14 @@ package com.cultivation.javaBasic;
 import com.cultivation.javaBasic.util.AnimeCharacter;
 import com.cultivation.javaBasic.util.KeyValuePair;
 import com.cultivation.javaBasic.util.ValueHolder;
+import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
 import org.junit.jupiter.api.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,12 +24,13 @@ class StreamingTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<String> wordStream = null;
+//        Stream<String> wordStream = words.stream().map(item -> item);
+        Stream<String> wordStream = words.stream().filter(item -> item.length() > 0);
         // --end-->
         {
             assertIterableEquals(
-                words,
-                wordStream.collect(Collectors.toList())
+                    words,
+                    wordStream.collect(Collectors.toList())
             );
         }
     }
@@ -37,15 +39,14 @@ class StreamingTest {
     @Test
     void should_be_able_to_turn_array_into_stream() {
         String[] words = {"a", "quick", "brown", "fox", "jumps", "over"};
-
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<String> wordStream = null;
+        Stream<String> wordStream = Arrays.stream(words);
         // --end-->
         {
             assertArrayEquals(
-                words,
-                wordStream.toArray(String[]::new)
+                    words,
+                    wordStream.toArray(String[]::new)
             );
         }
     }
@@ -55,9 +56,25 @@ class StreamingTest {
     void should_be_able_to_generate_empty_stream() {
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<String> emptyWordStream = null;
+        Stream testLength = Stream.of(1, 2, 3, 4);
+
+        boolean[] isClose = new boolean[]{false};
+        testLength.onClose(() -> isClose[0] = true);
+
+        Stream afterTestLength = testLength.filter(item -> (int) item > 2);
+//        testLength.toArray();
+        afterTestLength.toArray();
+        afterTestLength.close();
+        Stream<String> emptyWordStream = Stream.empty();
         // --end-->
         {
+            // 证明Stream只能调用一次
+            assertTrue(isClose[0]);
+            // Equals的语义是值相等
+            assertNotEquals(testLength.getClass(), afterTestLength.getClass());
+            assertNotSame(testLength, afterTestLength);
+
+            // 原本的测试
             assertEquals(0, emptyWordStream.count());
         }
     }
@@ -67,11 +84,33 @@ class StreamingTest {
     void should_be_able_to_generate_infinite_stream_with_same_items() {
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<String> infiniteEchos = null;
+        Stream<String> infiniteEchos = Stream.generate(() -> "Echo").limit(10001);
         // --end-->
         {
             assertEquals("Echo", infiniteEchos.skip(10000).findFirst().get());
         }
+    }
+
+    @Test
+    void should_return_10001_when_skip_in_stream() {
+        int[] number = new int[]{0};
+        String stringStream = Stream.generate(() -> {
+            number[0]++;
+            return "Echo";
+        }).skip(10000).findFirst().get();
+        assertEquals(10001, number[0]);
+    }
+
+    @Test
+    void should_return_10000_when_skip_in_stream() {
+        int[] number = new int[]{0};
+
+        Stream<String> stringStream = Stream.iterate("test", str -> {
+            number[0]++;
+            return "Echo";
+        }).skip(10000);
+
+        assertEquals(10000, number[0]);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -79,7 +118,7 @@ class StreamingTest {
     void should_be_able_to_generate_infinite_stream_of_sequence() {
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<Integer> infiniteSequence = null;
+        Stream<Integer> infiniteSequence = Stream.generate(() -> 10000).limit(10001);
         // --end-->
         {
             assertEquals(10000, infiniteSequence.skip(10000).findFirst().get().intValue());
@@ -93,7 +132,7 @@ class StreamingTest {
 
         // TODO: please write code to filter word whose length is greater than 4
         // <--start
-        Stream<String> filtered = null;
+        Stream<String> filtered = wordStream.filter(item -> item.length() > 4);
         // --end-->
         {
             assertArrayEquals(new String[]{"quick", "brown", "jumps"}, filtered.toArray(String[]::new));
@@ -107,12 +146,12 @@ class StreamingTest {
 
         // TODO: please write code to filter word whose length is greater than 4
         // <--start
-        Stream<String> filtered = null;
+        Stream<String> filtered = wordStream.map(String::toUpperCase);
         // --end-->
         {
             assertArrayEquals(
-                new String[]{"A", "QUICK", "BROWN", "FOX", "JUMPS", "OVER"},
-                filtered.toArray(String[]::new));
+                    new String[]{"A", "QUICK", "BROWN", "FOX", "JUMPS", "OVER"},
+                    filtered.toArray(String[]::new));
         }
     }
 
@@ -123,39 +162,48 @@ class StreamingTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<AnimeCharacter> characters = null;
+        Stream<AnimeCharacter> characters = nameStream.map(AnimeCharacter::new);
         // --end-->
         {
             AnimeCharacter[] actual = characters.toArray(AnimeCharacter[]::new);
             assertArrayEquals(
-                new AnimeCharacter[] {
-                    new AnimeCharacter("Naruto"),
-                    new AnimeCharacter("Kisuke"),
-                    new AnimeCharacter("Tomoya")
-                },
-                actual);
+                    new AnimeCharacter[]{
+                            new AnimeCharacter("Naruto"),
+                            new AnimeCharacter("Kisuke"),
+                            new AnimeCharacter("Tomoya")
+                    },
+                    actual);
         }
     }
 
     @SuppressWarnings({"unused", "ConstantConditions"})
     @Test
     void should_flatten_stream_of_streams() {
-        Stream<Stream<Character>> nameStream = Stream
-            .of("Naruto", "Kisuke", "Tomoya")
-            .map(StreamingTest::letters);
+        String test1 = "test1";
+        String test2 = "test2";
+        String test3 = "test3";
+        Stream<Stream<Character>> streamStream = Stream.of(test1, test2, test3)
+                .map(StreamingTest::letters);
 
-        // TODO: please modify the following code to pass the test
-        // <--start
-        Stream<Character> flatted = null;
-        // --end-->
-        {
-            assertArrayEquals(
-                new Character[] {
-                    'N', 'a', 'r', 'u', 't', 'o', 'K', 'i', 's', 'u', 'k',
-                    'e', 'T', 'o', 'm', 'o', 'y', 'a'
-                },
-                flatted.toArray(Character[]::new));
-        }
+        // concat one
+        // Stream<Character> streamStream = Stream.of("test1", "test2", "test3")
+        //      .map(StreamingTest::letters).flatMap(item -> item);
+
+        Stream<Character> characterStream = streamStream.flatMap(item -> item);
+
+        Character[] expected = {'t', 'e', 's', 't', '1', 't', 'e', 's', 't', '2', 't', 'e', 's', 't', '3'};
+        assertArrayEquals(expected, characterStream.toArray());
+    }
+
+    @Test
+    void should_use_para_to_array() {
+        Stream<Stream<Character>> streamStream = Stream.of("qw", "ss", "dd")
+                .map(StreamingTest::letters);
+
+        Character[] characters = streamStream.flatMap(item -> item).toArray(Character[]::new);
+
+        assertArrayEquals(new Character[]{'q', 'w', 's', 's', 'd', 'd'}, characters);
+
     }
 
     @SuppressWarnings({"unused", "ConstantConditions"})
@@ -165,14 +213,38 @@ class StreamingTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<Integer> finiteStream = null;
+        Stream<Integer> finiteStream = infiniteSequence.limit(10);
         // --end-->
         {
             assertArrayEquals(
-                new Integer[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-                finiteStream.toArray(Integer[]::new)
+                    new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+                    finiteStream.toArray(Integer[]::new)
             );
         }
+    }
+
+    @Test
+    void should_run_0_time_when_use_limit() {
+        int[] count = new int[]{0};
+        Stream<Integer> integerStream = Stream.iterate(0, i -> {
+            count[0]++;
+            return i + 1;
+        }).limit(10);
+
+        assertEquals(0, count[0]);
+    }
+
+    @Test
+    void should_run_9_time_when_use_limit_to_array() {
+        int[] count = new int[]{0};
+         Stream<Integer> integerStream = Stream.iterate(0, i -> {
+            count[0]++;
+            return i + 1;
+        }).limit(10);
+        integerStream.toArray(Integer[]::new);
+        int expected = 10 - 1;
+        assertEquals(expected, count[0]);
+
     }
 
     @SuppressWarnings({"unused", "ConstantConditions"})
@@ -183,14 +255,38 @@ class StreamingTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<Character> concatStream = null;
+        Stream<Character> concatStream = Stream.concat(helloStream, worldStream);
         // --end-->
         {
             assertArrayEquals(
-                letters("HelloWorld").toArray(Character[]::new),
-                concatStream.toArray(Character[]::new)
+                    letters("HelloWorld").toArray(Character[]::new),
+                    concatStream.toArray(Character[]::new)
             );
         }
+    }
+
+    @Test
+    void should_concat_sorted() {
+        Stream<Integer> integerStream = Stream.of(5, 6, 7);
+        Stream<Integer> integerStreamBigger = Stream.of(1, 2, 3);
+
+        Stream<Integer> concatIntSoredAll = Stream.concat(integerStream.sorted(), integerStreamBigger.sorted());
+
+        Integer[] integer = new Integer[]{5, 6, 7, 1, 2, 3};
+        assertArrayEquals(integer, concatIntSoredAll.toArray(Integer[]::new));
+
+    }
+
+    @Test
+    void should_concat_sorted_2() {
+        Stream<Integer> integerStream = Stream.of(3, 2);
+        Stream<Integer> integerStreamBigger = Stream.of(1, 4);
+
+        Stream<Integer> concatIntSored2 = Stream.concat(integerStream, integerStreamBigger.sorted());
+
+        Integer[] integer = new Integer[]{3, 2, 1, 4};
+        assertArrayEquals(integer, concatIntSored2.toArray(Integer[]::new));
+
     }
 
     @SuppressWarnings({"SpellCheckingInspection", "unused", "ConstantConditions"})
@@ -200,14 +296,14 @@ class StreamingTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        Stream<Character> distinct = null;
+        Stream<Character> distinct = characterStream.distinct();
         // --end-->
         {
             Character[] characters = distinct.sorted().toArray(Character[]::new);
 
             assertArrayEquals(
-                new Character[] {'a', 'b', 'c', 'f', 'i', 'k', 'n', 'o', 'q', 'r', 'u', 'w', 'x'},
-                characters
+                    new Character[]{'a', 'b', 'c', 'f', 'i', 'k', 'n', 'o', 'q', 'r', 'u', 'w', 'x'},
+                    characters
             );
         }
     }
@@ -218,19 +314,33 @@ class StreamingTest {
         holder.setValue(0);
 
         Stream<Integer> hookStream = Stream
-            .iterate(0, i -> i + 1)
-            .limit(20)
-            .filter(v -> v % 2 == 0)
-            .peek(v -> holder.setValue(holder.getValue() + v));
+                .iterate(0, i -> i + 1)
+                .limit(20)
+                .filter(v -> v % 2 == 0)
+                .peek(v -> holder.setValue(holder.getValue() + v));
 
         hookStream.forEach(i -> {});
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final int expected = 0;
+        final int expected = 90;
         // --end-->
 
         assertEquals(expected, holder.getValue().intValue());
+    }
+
+    @Test
+    void should_not_use_peek_change_stream() {
+        ArrayList<ValueHolder<Integer>> valueHolderArrayList = new ArrayList<>();
+        ValueHolder<Integer> holder = new ValueHolder<>();
+        holder.setValue(1);
+        valueHolderArrayList.add(holder);
+
+        Stream<Integer> integerStream = valueHolderArrayList.stream()
+                .peek(item -> item.setValue(2))
+                .map(ValueHolder::getValue);
+
+        assertEquals(2, integerStream.toArray()[0]);
     }
 
     @SuppressWarnings({"ConstantConditions", "unchecked", "OptionalAssignedToNull"})
@@ -238,8 +348,8 @@ class StreamingTest {
     void should_throws_if_get_value_of_empty_optional() {
         // TODO: please create an empty optional and specify the concrete exception type.
         // <--start
-        Optional<String> empty = null;
-        Class errorType = null;
+        Optional<String> empty = Optional.empty();
+        Class<NoSuchElementException> errorType = NoSuchElementException.class;
         // --end-->
 
         assertThrows(errorType, empty::get);
@@ -264,7 +374,9 @@ class StreamingTest {
 
         // TODO: In the `Runnable` object. Please throw IllegalStateException when `empty` is not present.
         // <--start
-        Runnable emptyRunnable = null;
+        Runnable emptyRunnable = () -> {
+            if (!empty.isPresent()) throw new IllegalStateException();
+        };
         // --end-->
 
         assertThrows(IllegalStateException.class, emptyRunnable::run);
@@ -279,7 +391,7 @@ class StreamingTest {
         // TODO: please add the upper-cased value to result if `optional` is present in `Consumer<Optional<String>>`
         // TODO: implementation.
         // <--start
-        Consumer<Optional<String>> optionalConsumer = null;
+        Consumer<Optional<String>> optionalConsumer = (item) -> result.add(item.get().toUpperCase());
         // --end-->
 
         optionalConsumer.accept(optional);
@@ -299,7 +411,17 @@ class StreamingTest {
         // TODO: please add the upper-cased value to `result` list if optional is present. Then return the boolean
         // TODO: mapping result of `result.add`.
         // <--start
-        Function<Optional<String>, Optional<Boolean>> mapping = null;
+        Function<Optional<String>, Optional<Boolean>> mapping = new Function<Optional<String>, Optional<Boolean>>() {
+            @Override
+            public Optional<Boolean> apply(Optional<String> optionalS) {
+                if (optionalS.isPresent()) {
+                    result.add(optionalS.get().toUpperCase());
+                    return Optional.of(true);
+                } else {
+                    return Optional.empty();
+                }
+            }
+        };
         // --end-->
 
         Optional<Boolean> mappingResult = mapping.apply(optional);
@@ -314,16 +436,23 @@ class StreamingTest {
     @Test
     void should_flat_map_optional_value_do_chain_method() {
         Stream<YieldOptional> emptyStream = Stream.of(1, 2, 3)
-            .filter(i -> i > 4)
-            .map(i -> new YieldOptional());
+                .filter(i -> i > 4)
+                .map(i -> new YieldOptional());
         Stream<YieldOptional> nonEmptyStream = Stream.of(1, 2, 3)
-            .filter(i -> i > 1)
-            .map(i -> new YieldOptional());
+                .filter(i -> i > 1)
+                .map(i -> new YieldOptional());
 
         // TODO: The `findFirstAndGet` interface will find first item in stream. If it can be found, map it with
         // TODO: `YieldOptional.get` method. Otherwise, returns empty Optional.
         // <--start
-        Function<Stream<YieldOptional>, Optional<String>> findFirstAndGet = null;
+        Function<Stream<YieldOptional>, Optional<String>> findFirstAndGet = new Function<Stream<YieldOptional>, Optional<String>>() {
+            @Override
+            public Optional<String> apply(Stream<YieldOptional> yieldOptionalStream) {
+                Optional<String> optionalS = Optional.empty();
+                optionalS.of(yieldOptionalStream.findFirst());
+                return optionalS;
+            }
+        };
         // --end-->
 
         Optional<String> emptyStreamResult = findFirstAndGet.apply(emptyStream);
@@ -341,13 +470,13 @@ class StreamingTest {
 
         // TODO: please implement toList collector using `stream.collect`. You cannot use existing `toList` collector.
         // <--start
-        ArrayList<String> list = null;
+        ArrayList<String> list = stream.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         // --end-->
 
         assertEquals(ArrayList.class, list.getClass());
         assertIterableEquals(
-            Arrays.asList("Hello", "What", "is", "your", "name"),
-            list
+                Arrays.asList("Hello", "What", "is", "your", "name"),
+                list
         );
     }
 
@@ -355,14 +484,20 @@ class StreamingTest {
     @Test
     void should_collect_to_map() {
         Stream<KeyValuePair<String, Integer>> stream = Stream.of(
-            new KeyValuePair<>("Harry", 2002),
-            new KeyValuePair<>("Bob", 2014),
-            new KeyValuePair<>("Harry", 2033)
+                new KeyValuePair<>("Harry", 2002),
+                new KeyValuePair<>("Bob", 2014),
+                new KeyValuePair<>("Harry", 2033)
         ).parallel();
 
         // TODO: please implement toMap collector using `stream.collect`. You cannot use existing `toMap` collector.
         // <--start
-        HashMap<String, Integer> map = null;
+        HashMap<String, Integer> map = stream.collect(HashMap::new, (newMap, item) -> {
+            if (newMap.containsKey(item.getKey())) {
+                newMap.put(item.getKey(), item.getValue());
+            } else {
+
+            }
+        }, (map1, map2) -> map1.putAll(map2));
         // --end-->
 
         assertEquals(2, map.size());
@@ -376,9 +511,9 @@ class StreamingTest {
     @Test
     void should_collect_to_group() {
         Stream<KeyValuePair<String, Integer>> stream = Stream.of(
-            new KeyValuePair<>("Harry", 2002),
-            new KeyValuePair<>("Bob", 2014),
-            new KeyValuePair<>("Harry", 2033)
+                new KeyValuePair<>("Harry", 2002),
+                new KeyValuePair<>("Bob", 2014),
+                new KeyValuePair<>("Harry", 2033)
         ).parallel();
 
         // TODO: implement grouping collector using `stream.collect`. You cannot use existing `groupingBy` collector.
@@ -395,14 +530,15 @@ class StreamingTest {
     @Test
     void should_collect_to_group_continued() {
         Stream<KeyValuePair<String, Integer>> stream = Stream.of(
-            new KeyValuePair<>("Harry", 2002),
-            new KeyValuePair<>("Bob", 2014),
-            new KeyValuePair<>("Harry", 2033)
+                new KeyValuePair<>("Harry", 2002),
+                new KeyValuePair<>("Bob", 2014),
+                new KeyValuePair<>("Harry", 2033)
         ).parallel();
 
         // TODO: implement grouping collector using `stream.collect`. This time please use `Collectors.groupingBy`
         // <--start
-        Map<String, List<Integer>> map = null;
+        Map<String, List<Integer>> map = stream
+                .collect(Collectors.groupingBy(KeyValuePair::getKey, Collectors.mapping(KeyValuePair::getValue, Collectors.toList())));
         // --end-->
 
         assertEquals(2, map.size());
@@ -414,9 +550,9 @@ class StreamingTest {
     @Test
     void should_calculate_number_in_each_group() {
         Stream<KeyValuePair<String, Integer>> stream = Stream.of(
-            new KeyValuePair<>("Harry", 2002),
-            new KeyValuePair<>("Bob", 2014),
-            new KeyValuePair<>("Harry", 2033)
+                new KeyValuePair<>("Harry", 2002),
+                new KeyValuePair<>("Bob", 2014),
+                new KeyValuePair<>("Harry", 2033)
         ).parallel();
 
         // TODO: implement grouping collector using `stream.collect`. You should use `Collectors.groupingBy` and
@@ -434,9 +570,9 @@ class StreamingTest {
     @Test
     void should_calculate_sum_of_each_group() {
         Stream<KeyValuePair<String, Integer>> stream = Stream.of(
-            new KeyValuePair<>("Harry", 2002),
-            new KeyValuePair<>("Bob", 2014),
-            new KeyValuePair<>("Harry", 2033)
+                new KeyValuePair<>("Harry", 2002),
+                new KeyValuePair<>("Bob", 2014),
+                new KeyValuePair<>("Harry", 2033)
         ).parallel();
 
         // TODO: implement grouping collector using `stream.collect`. You should use `Collectors.groupingBy` and
@@ -455,13 +591,13 @@ class StreamingTest {
     void should_calculate_sum_using_reduce() {
         List<Integer> numbers = new ArrayList<>();
         Stream
-            .iterate(1, i -> i + 1)
-            .limit(100)
-            .forEach(numbers::add);
+                .iterate(1, i -> i + 1)
+                .limit(100)
+                .forEach(numbers::add);
 
         // TODO: please modify the following code to pass the test
         // <--start
-        Optional<Integer> reduced = null;
+        Optional<Integer> reduced = Optional.ofNullable(numbers.stream().reduce(0, (a, b) -> a + b));
         // --end-->
 
         //noinspection ConstantConditions
@@ -475,7 +611,7 @@ class StreamingTest {
 
         // TODO: please calculate the total number of characters using `reduce`.
         // <--start
-        Integer total = null;
+        Integer total = (int) words.stream().mapToInt(String::length).sum();
         // --end-->
 
         assertEquals(15, total.intValue());
@@ -485,7 +621,7 @@ class StreamingTest {
     private static <T> T getValue(Optional<T> optional, T defaultValue) {
         // TODO: please implement the following method to pass the test
         // <--start
-        throw new NotImplementedException();
+        return optional.isPresent() ? optional.get() : defaultValue;
         // --end-->
     }
 

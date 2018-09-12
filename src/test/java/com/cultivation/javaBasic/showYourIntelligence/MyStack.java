@@ -1,5 +1,6 @@
 package com.cultivation.javaBasic.showYourIntelligence;
 
+import org.junit.jupiter.api.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.reflect.Array;
@@ -69,5 +70,13 @@ public class MyStack {
             return storage[--count];
         // --end-->
         throw new UnsupportedOperationException("Stack is empty.");
+    }
+
+    @Test
+    void should_not_change_array_length() {
+        int[] intArray = new int[10];
+
+//        int intArray.length = 2;
+
     }
 }

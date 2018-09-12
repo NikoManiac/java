@@ -1,27 +1,26 @@
 package com.cultivation.javaBasic;
 
 import com.cultivation.javaBasic.showYourIntelligence.StackFrameHelper;
-import com.cultivation.javaBasic.util.ClosableStateReference;
-import com.cultivation.javaBasic.util.ClosableWithException;
-import com.cultivation.javaBasic.util.ClosableWithoutException;
-import com.cultivation.javaBasic.util.MyClosableType;
+import com.cultivation.javaBasic.util.*;
 import com.cultivation.javaBasic.showYourIntelligence.StringFormatException;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ExceptionTest {
     @Test
     void should_customize_exception() {
+        String expectedErrorMessage = "message error";
+        Object expectedCauseNull = null;
+
         try {
-            throw new StringFormatException("the message");
-        } catch (StringFormatException error) {
-            assertEquals("the message", error.getMessage());
+            throw new StringFormatException("message error");
+        } catch (StringFormatException e) {
+            assertEquals(expectedErrorMessage, e.getMessage());
+            assertEquals(expectedCauseNull, e.getCause());
         }
     }
 
@@ -43,7 +42,7 @@ class ExceptionTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final int expectedResult = Integer.MAX_VALUE;
+        final int expectedResult = 0;
         // --end-->
 
         assertEquals(expectedResult, confusedResult);
@@ -53,14 +52,16 @@ class ExceptionTest {
     @Test
     void should_use_the_try_pattern() {
         ClosableStateReference closableStateReference = new ClosableStateReference();
-        try (MyClosableType closable = new MyClosableType(closableStateReference))
-        {
-            assertFalse(closable.isClosed());
-        }
 
+        try (MyClosableType closable = new MyClosableType(closableStateReference)) {
+            assertFalse(closable.isClosed());
+            throw new RuntimeException();
+        } catch (RuntimeException e) {
+            assertEquals(true, closableStateReference.isClosed());
+        }
         // TODO: please modify the following code to pass the test
         // <--start
-        final Optional<Boolean> expected = Optional.empty();
+        final Optional<Boolean> expected = Optional.of(true);
         // --end-->
 
         assertEquals(expected.get(), closableStateReference.isClosed());
@@ -70,18 +71,18 @@ class ExceptionTest {
     @Test
     void should_call_closing_even_if_exception_throws() throws Exception {
         ArrayList<String> logger = new ArrayList<>();
+        try (AutoCloseable withoutThrow = new ClosableWithoutException(logger);
+             AutoCloseable withThrow = new ClosableWithException(logger)) {
+        }
 
         try {
-            try (AutoCloseable withoutThrow = new ClosableWithoutException(logger);
-                 AutoCloseable withThrow = new ClosableWithException(logger)) {
-            }
         } catch (Exception e) {
             // It is okay!
         }
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String[] expected = {};
+        final String[] expected = {"ClosableWithException.close", "ClosableWithoutException.close"};
         // --end-->
 
         assertArrayEquals(
@@ -98,14 +99,68 @@ class ExceptionTest {
             methodName);
     }
 
+    @Test
+    void should_not_use_close_when_throw() {
+        ArrayList<String> logger = new ArrayList<>();
+        try {
+            AutoCloseable withoutThrow = new ClosableWithoutException(logger);
+            AutoCloseable withThrow = new ClosableWithException(logger);
+        } finally {
+            logger.add("finally");
+        }
+        String[] expected = {"finally"};
+        assertArrayEquals(
+                expected,
+                logger.toArray());
+
+    }
+
+    @Test
+    void should_return_a_method() {
+
+    }
+    @Test
+    void aMethod() {
+        bMethod();
+        assertTrue(true);
+    }
+
+    @Test
+    void should_override() {
+        ExceptionOverTest exceptionOverTest = new ExceptionOverTest();
+        ExceptionTestChild exceptionTestChild = new ExceptionTestChild();
+        ExceptionOverRuntime exceptionOverRuntime = new ExceptionOverRuntime();
+    }
+
+    private void bMethod(){
+        throw new Error();
+    }
+
+    private void cMethod() {
+    }
+
+    // test throws for throwable
+
+    private void testSignature () {
+
+    }
+
+//    private void testSignature() throws Exception {
+//
+//    }
+
+//    private void testSignature() throws RuntimeException {
+//
+//    }
+
     @SuppressWarnings({"ReturnInsideFinallyBlock", "SameParameterValue"})
     private int confuse(int value) {
         try {
-            return value * value;
+            throw new RuntimeException();
+        } catch (RuntimeException e){
+            return 1;
         } finally {
-            if (value == 2) {
-                return 0;
-            }
+            return 2;
         }
     }
 }

@@ -3,9 +3,7 @@ package com.cultivation.javaBasic;
 import org.junit.jupiter.api.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FloatingTypeTest {
     @Test
@@ -19,6 +17,70 @@ class FloatingTypeTest {
         // --end-->
 
         assertEquals(expected, integer);
+    }
+
+    @Test
+    void should_return_convert_data_type() {
+        byte byteNumber = 1;
+        short shortNumber = 1;
+        int intNumber = 1;
+        long longNumber = 1L;
+        float floatNumber = 1F;
+        double doubleNumber = 1D;
+
+//        byteNumber = intNumber;
+//        byteNumber = shortNumber;
+//        byteNumber = longNumber;
+//        byteNumber = floatNumber;
+//        byteNumber = doubleNumber;
+
+        shortNumber = byteNumber;
+//        shortNumber = intNumber;
+//        shortNumber = longNumber;
+//        shortNumber = floatNumber;
+//        floatNumber = doubleNumber;
+
+        intNumber = byteNumber;
+        intNumber = shortNumber;
+//        intNumber = longNumber;
+//        intNumber = floatNumber;
+//        intNumber = doubleNumber;
+
+        longNumber = byteNumber;
+        longNumber = shortNumber;
+        longNumber = intNumber;
+//        longNumber = floatNumber;
+//        longNumber = doubleNumber;
+
+        floatNumber = byteNumber;
+        floatNumber = shortNumber;
+        floatNumber = intNumber;
+        floatNumber = longNumber;
+//        floatNumber = doubleNumber;
+
+        doubleNumber = byteNumber;
+        doubleNumber = shortNumber;
+        doubleNumber = intNumber;
+        doubleNumber = longNumber;
+        doubleNumber = floatNumber;
+
+
+
+
+
+//        longNumber = shortNumber
+// ;
+//        shortNumber = longNumber;
+
+//        short doubleToShortNumber = (short) doubleNumber;
+//        int doubleToIntNumber = (int) doubleNumber;
+//        int longToIntNumber = (int) longNumber;
+//        long intToLongNumber = intNumber;
+//        long doubleToLongNumber = (long) doubleNumber;
+//        int byteToIntNumber = byteNumber;
+//        float byteToFloatNumber = byteNumber;
+//        long floatToFloatNumber = (long)floatNumber;
+//        byte shortToByte = (byte) shortNumber;
     }
 
     @SuppressWarnings({"divzero", "NumericOverflow"})
@@ -72,7 +134,6 @@ class FloatingTypeTest {
         return Double.isInfinite(realNumber);
 //        throw new NotImplementedException();
     }
-
     /*
      * The coach should ask the following questions for the correspond test method:
      *

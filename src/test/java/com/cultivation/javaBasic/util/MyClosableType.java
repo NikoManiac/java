@@ -1,6 +1,8 @@
 package com.cultivation.javaBasic.util;
 
-public class MyClosableType implements AutoCloseable {
+import java.io.Closeable;
+
+public class MyClosableType implements Closeable {
     private ClosableStateReference reference;
 
     public MyClosableType(ClosableStateReference reference) {
@@ -12,7 +14,6 @@ public class MyClosableType implements AutoCloseable {
         return reference.isClosed();
     }
 
-    @Override
     public void close() {
         reference.close();
     }

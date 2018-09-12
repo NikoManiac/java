@@ -12,13 +12,24 @@ class InheritanceTest {
 
     @Test
     void should_be_derived_from_object_class() {
+        // derive 起于，源于
         // TODO: please modify the following code to pass the test
         // <--start
-        final Class<?> expectedSuperClass = null;
+        final Class<?> expectedSuperClass = Object.class;
         // --end-->
-
+        // The class Object is a superclass (§8.1.4) of all other classes.
         assertEquals(expectedSuperClass, SimpleEmptyClass.class.getSuperclass());
     }
+
+    @Test
+    void should_use_super_static_method() {
+//        SuperClass superClass = new SuperClass();
+        ChildClass childClass = new ChildClass();
+
+        boolean expectedUseSuperStatic = true;
+        assertEquals(expectedUseSuperStatic, ChildClass.test());
+    }
+
 
     @Test
     void should_call_super_class_constructor() {
@@ -26,7 +37,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String[] expected = {};
+        final String[] expected = {"SuperClassWithDefaultConstructor.constructor()", "DerivedFromSuperClassWithDefaultConstructor.constructor()"};
         // --end-->
 
         String[] logs = instance.getLogs();
@@ -40,7 +51,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String[] expected = {};
+        final String[] expected = {"SuperClassWithDefaultConstructor.constructor()", "DerivedFromSuperClassWithDefaultConstructor.constructor()", "DerivedFromSuperClassWithDefaultConstructor.constructor(int)"};
         // --end-->
 
         String[] logs = instance.getLogs();
@@ -54,7 +65,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String[] expected = {};
+        final String[] expected = {"SuperClassWithDefaultConstructor.constructor(String)", "DerivedFromSuperClassWithDefaultConstructor.constructor(String)"};
         // --end-->
 
         String[] logs = instance.getLogs();
@@ -68,7 +79,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String expectedName = null;
+        final String expectedName = "DerivedFromBaseClassForOverriding";
         // --end-->
 
         assertEquals(expectedName, instance.getName());
@@ -80,7 +91,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String expectedName = null;
+        final String expectedName = "BaseClassForOverriding->DerivedFromBaseClassForOverridingCallingSuper";
         // --end-->
 
         assertEquals(expectedName, instance.getName());
@@ -89,23 +100,18 @@ class InheritanceTest {
     @SuppressWarnings({"ConstantConditions", "RedundantCast", "UnnecessaryLocalVariable"})
     @Test
     void should_use_caution_when_dealing_with_array_type() {
-        DerivedFromSuperClassWithDefaultConstructor[] array = new DerivedFromSuperClassWithDefaultConstructor[4];
-        SuperClassWithDefaultConstructor[] arrayWithBaseType = (SuperClassWithDefaultConstructor[])array;
+        DerivedFromSuperClassWithDefaultConstructor[] classWithDefaultConstructors = new DerivedFromSuperClassWithDefaultConstructor[4];
+        SuperClassWithDefaultConstructor[] superClassWithDefaultConstructors = classWithDefaultConstructors;
 
         boolean willThrow = false;
 
         try {
-            arrayWithBaseType[arrayWithBaseType.length - 1] = new SuperClassWithDefaultConstructor();
-        } catch (Exception error) {
+            superClassWithDefaultConstructors[superClassWithDefaultConstructors.length - 1] = new SuperClassWithDefaultConstructor();
+        } catch (Exception e) {
             willThrow = true;
         }
 
-        // TODO: please modify the following code to pass the test
-        // <--start
-        final Optional<Boolean> expected = Optional.empty();
-        // --end-->
-
-        assertEquals(expected.get(), willThrow);
+        assertTrue(willThrow);
     }
 
     @SuppressWarnings("UnnecessaryLocalVariable")
@@ -116,7 +122,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String expected = null;
+        final String expected = "NestedDerivedClassWithName";
         // --end-->
 
         assertEquals(expected, derived.getName());
@@ -128,7 +134,7 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String expected = null;
+        final String expected = "BaseClassWithName";
         // --end-->
 
         assertEquals(expected, derived.getName());
@@ -141,9 +147,9 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final Optional<Boolean> expectedResult1 = Optional.empty();
-        final Optional<Boolean> expectedResult2 = Optional.empty();
-        final Optional<Boolean> expectedResult3 = Optional.empty();
+        final Optional<Boolean> expectedResult1 = Optional.of(true);
+        final Optional<Boolean> expectedResult2 = Optional.of(true);
+        final Optional<Boolean> expectedResult3 = Optional.of(true);
         // --end-->
 
         assertEquals(expectedResult1.get(), nested instanceof NestedDerivedClassWithName);
@@ -158,8 +164,8 @@ class InheritanceTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final Optional<Boolean> expectedResult1 = Optional.empty();
-        final Optional<Boolean> expectedResult2 = Optional.empty();
+        final Optional<Boolean> expectedResult1 = Optional.of(true);
+        final Optional<Boolean> expectedResult2 = Optional.of(false);
         // --end-->
 
         assertEquals(expectedResult1.get(), integer instanceof Integer );
@@ -233,6 +239,17 @@ class InheritanceTest {
         assertNotEquals(person.hashCode(), different1.hashCode());
         assertNotEquals(person.hashCode(), different2.hashCode());
         assertEquals(person.hashCode(), samePerson.hashCode());
+    }
+
+    @Test
+    void should_compare_to_person() {
+        PersonForEquals person1 = new PersonForEquals("James", (short)1990);
+        PersonForEquals person2 = new PersonForEquals("Ania", (short)1991);
+        PersonForEquals person3 = new PersonForEquals("James", (short)1991);
+
+        assertEquals(1, person1.compareTo(person2));
+        assertEquals(-1, person1.compareTo(person3));
+        assertEquals(1, person3.compareTo(person2));
     }
 }
 

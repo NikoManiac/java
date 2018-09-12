@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class BooleanOperatorsTest {
 
@@ -73,5 +74,19 @@ class BooleanOperatorsTest {
         // --end-->
 
         assertEquals(expected, ~value);
+    }
+
+    @Test
+    void should_test_priority() {
+//        final int notSymbol = 0x0000;
+        int trueSymbol = 0xffffffff;
+        int falseSymbol = 0x00000000;
+        int expectedAndProirOr = 0xffffffff;
+        int expectedNotPriorAnd = 0xffffffff;
+        int expectedNotPriorOr = 0xffffffff;
+
+        assertEquals(expectedNotPriorAnd, ~falseSymbol & trueSymbol);
+        assertEquals(expectedNotPriorOr, ~trueSymbol | trueSymbol);
+        assertEquals(expectedAndProirOr, falseSymbol | trueSymbol & trueSymbol);
     }
 }

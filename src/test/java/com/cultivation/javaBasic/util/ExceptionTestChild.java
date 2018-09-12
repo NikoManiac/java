@@ -1,7 +1,7 @@
 package com.cultivation.javaBasic.util;
 
-public class DerivedFromBaseClassWithName extends BaseClassWithName {
+public class ExceptionTestChild extends ExceptionOverTest {
+    @Override
     public void test() {
     }
 }
-

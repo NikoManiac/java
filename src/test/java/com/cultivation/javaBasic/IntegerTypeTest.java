@@ -1,11 +1,8 @@
 package com.cultivation.javaBasic;
 
 import org.junit.jupiter.api.Test;
-import org.omg.PortableInterceptor.INACTIVE;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class IntegerTypeTest {
 
@@ -22,6 +19,15 @@ class IntegerTypeTest {
 
         assertEquals(maximumSymbol, maximum);
         assertEquals(minimumSymbol, minimum);
+    }
+
+    @Test
+    void should_be_negative() {
+        int testInt = 1;
+        for (int i = 0; i < 31; i++) {
+            assertTrue((testInt << i) > 0);
+        }
+//        assertTrue((testInt << 32) < 0);
     }
 
     @Test
@@ -80,6 +86,8 @@ class IntegerTypeTest {
         // --end-->
 
         assertEquals(expectedResult, theNumberWillOverflow);
+
+        // note: max value + 1 涉及补码
     }
 
     @Test
@@ -92,6 +100,8 @@ class IntegerTypeTest {
         final int expectedResult = Integer.MAX_VALUE;
         // --end-->
         assertEquals(expectedResult, theNumberWillUnderflow);
+
+        // note： + （-1）   -1 = 11111111....11111    MIN_VALUE + 1
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -130,10 +140,20 @@ class IntegerTypeTest {
 
         // TODO: please modify the following lines to pass the test
         // <!--start
-        final short expected = 0b0100010101100111;
+        final short expected = 0x4567;
         // --end-->
 
         assertEquals(expected, smallerInteger);
+    }
+
+    @Test
+    void should_truncate_sign_when_casting() {
+        final int signInteger = 0x7fff_ffff;
+        final short smallerSignInteger = (short) signInteger;
+        final short expected = (short) 0xffff;
+
+        assertEquals(expected, smallerSignInteger);
+
     }
 
     @Test
@@ -155,7 +175,6 @@ class IntegerTypeTest {
     @Test
     void should_increment_2() {
         int integer = 3;
-
         int result = ++integer;
 
         // TODO: please modify the following code to pass the test
@@ -163,7 +182,6 @@ class IntegerTypeTest {
         final int expectedCurrentInteger = 4;
         final int expectedResult = 4;
         // --end-->
-
         assertEquals(expectedCurrentInteger, integer);
         assertEquals(expectedResult, result);
     }
@@ -172,6 +190,7 @@ class IntegerTypeTest {
         // TODO: Please implement the method. Adding two numbers.
         // The method should throw ArithmeticException if overflow or underflow happens.
         return Math.addExact(left, right);
+        // note Arithmetic 算数的
     }
 
     /*

@@ -3,12 +3,12 @@ package com.cultivation.javaBasic;
 import com.cultivation.javaBasic.showYourIntelligence.DistinctIterable;
 import com.cultivation.javaBasic.showYourIntelligence.Sequence;
 import com.cultivation.javaBasic.util.RandomCharacterIterable;
+import com.cultivation.javaBasic.util.YottabyteInteface;
 import org.junit.jupiter.api.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CollectionsTest {
     @Test
@@ -29,7 +29,9 @@ class CollectionsTest {
         // TODO: you could ONLY use `Iterator.hasNext` and `Iterator.next` API to copy items to a `List`. No `for` is
         // allowed.
         // <--start
-
+        while (iterator.hasNext()) {
+            list.add(iterator.next());
+        }
         // --end-->
 
         return list;
@@ -57,7 +59,7 @@ class CollectionsTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final List<String> expected = Arrays.asList("I", "Don't", "Know");
+        final List<String> expected = Arrays.asList("Amy", "Bob", "Carl");
         // --end-->
 
         assertIterableEquals(expected, staff);
@@ -71,10 +73,39 @@ class CollectionsTest {
             oneGagaChars,
             new Character[]{'a', 'b'});
 
-        List<Character> distinct = new DistinctIterable<>(characters).toList();
+List<Character> distinct = new DistinctIterable<>(characters).toList();
         distinct.sort(Character::compareTo);
 
         assertIterableEquals(Arrays.asList('a', 'b'), distinct);
+    }
+
+    @Test
+    void should_add_int() {
+        Integer testInt = 0;
+        testInt++;
+
+        assertEquals(new Integer(1), testInt);
+        assertEquals(1, testInt.intValue());
+        assertNotSame(testInt, ++testInt);
+    }
+
+    @Test
+    void should_not_change_collect() {
+        List<Integer> integers = new ArrayList<>();
+        for (int index = 0; index < 12; index++) {
+            integers.add(index);
+        }
+
+        Iterator iterator = integers.iterator();
+        iterator.hasNext();
+        iterator.next();
+        integers.remove(1);
+        iterator.hasNext();
+        iterator.next();
+//        for (int index = 0; index < 12; index++) {
+//            integers.set(index, index + 100);
+//        }
+        assertEquals(11, integers.size());
     }
 
     @Test
@@ -89,10 +120,24 @@ class CollectionsTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final List<Integer> expected = Arrays.asList(0, 0, 0);
+        final List<Integer> expected = Arrays.asList(0, 1, 2, 10 ,11);
         // --end-->
 
         assertIterableEquals(expected, integers);
+    }
+
+
+
+    @Test
+    void should_return_yottabyte_number() {
+        List<Double> yottabyteNumberList = new ArrayList<>();
+
+        Yottabyte yottabyte = new Yottabyte(Math.pow(2, 40));
+
+        for (Object aYottabyte : yottabyte) {
+            yottabyteNumberList.add((double) aYottabyte);
+        }
+        assertEquals(15, yottabyteNumberList.size());
     }
 }
 

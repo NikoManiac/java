@@ -3,6 +3,10 @@ package com.cultivation.javaBasic;
 import org.junit.jupiter.api.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -19,7 +23,7 @@ class StringTest {
         //
         // It is really easy to pass the test. But you have to tell why.
         // <--start
-        final Optional<Boolean> areSame = Optional.empty();
+        final Optional<Boolean> areSame = Optional.of(false);
         // --end-->
 
         assertEquals("The new string", modifiedString);
@@ -36,7 +40,7 @@ class StringTest {
         //
         // It is really easy to pass the test. But you have to tell why.
         // <--start
-        final Optional<Boolean> areSame = Optional.empty();
+        final Optional<Boolean> areSame = Optional.of(false);
         // --end-->
 
         assertEquals("The string with tailing space.", modifiedString);
@@ -54,7 +58,7 @@ class StringTest {
         //
         // It is really easy to pass the test. But you have to tell why.
         // <--start
-        final Optional<Boolean> areSame = Optional.empty();
+        final Optional<Boolean> areSame = Optional.of(false);
         // --end-->
 
         assertEquals("Part one. Part two.", originalString);
@@ -68,7 +72,7 @@ class StringTest {
 
         // TODO: Take part of the original string according to expectation.
         // <--start
-        final String partOfString = null;
+        final String partOfString = originalString.substring(5);
         // --end-->
 
         final String expectedString = "is great";
@@ -83,7 +87,7 @@ class StringTest {
 
         // TODO: Take part of the original string according to expectation.
         // <--start
-        final String partOfString = null;
+        final String partOfString = originalString.split(" ")[1];
         // --end-->
 
         final String expectedString = "is";
@@ -106,10 +110,10 @@ class StringTest {
 
         // TODO: Extract words in the sentence.
         // <--Start
-        String[] words = null;
+        String[] words = sentence.split(" ");
         // --End-->
 
-        assertArrayEquals(new String[] {"This", "is", "Mike"}, words);
+        assertArrayEquals(new String[]{"This", "is", "Mike"}, words);
     }
 
     @SuppressWarnings({"unused", "ConstantConditions"})
@@ -119,10 +123,10 @@ class StringTest {
 
         // TODO: Extract words in the sentence.
         // <--Start
-        String[] words = null;
+        String[] words = sentence.split("/");
         // --End-->
 
-        assertArrayEquals(new String[] {"This", "is", "Mike"}, words);
+        assertArrayEquals(new String[]{"This", "is", "Mike"}, words);
     }
 
     @SuppressWarnings({"unused", "StringBufferReplaceableByString", "MismatchedQueryAndUpdateOfStringBuilder"})
@@ -133,15 +137,48 @@ class StringTest {
 
         // TODO: Create string using StringBuilder
         // <--Start
-        StringBuilder builder = new StringBuilder();
+//        String widthString = "|---|\n";
+//        String heightString = "|   |\n";
+
+        String vString = new String("\u007c");
+        String hString = new String("\u002d");
+        String spaceString = new String("\u0020");
+//        String widthStringASCII = new String("\u007c" + "\u002d" + "\u002d" + "\u002d" + "\u007c" + "\n");
+//        String heightStringASCII = new String("\u007c" + "\u0020" + "\u0020" + "\u0020" + "\u007c" + "\n");
+        StringBuilder widthBuilder = new StringBuilder();
+        widthBuilder.append(vString);
+
+        int activeWidth = width - 2;
+        while (activeWidth-- > 0) {
+            widthBuilder.append(hString);
+        }
+        widthBuilder.append(vString).append("\n");
+
+        StringBuilder heightBuilder = new StringBuilder();
+        widthBuilder.append(vString);
+
+        activeWidth = width - 2;
+        while (activeWidth-- > 0) {
+            widthBuilder.append(spaceString);
+        }
+        widthBuilder.append(vString).append("\n");
+
+        StringBuilder allBuilder = new StringBuilder();
+
+        allBuilder.append(widthBuilder);
+        int activeHeight = height - 2;
+        while (activeHeight-- > 0) {
+            allBuilder.append(heightBuilder);
+        }
+        allBuilder.append(widthBuilder);
         // --End-->
 
         final String expected =
-            "|---|\n" +
-            "|   |\n" +
-            "|---|\n";
+                "|---|\n" +
+                        "|   |\n" +
+                        "|---|\n";
 
-        assertEquals(expected, builder.toString());
+        assertEquals(expected, allBuilder.toString());
     }
 
     @SuppressWarnings("unused")
@@ -152,8 +189,11 @@ class StringTest {
         int sum = 0;
         // TODO: Write some code to calculate the checksum of the string. The checksum is the sum of each string char.
         // <--Start
+        int textLength = text.length();
+        for (int i = 0; i < textLength; i++) {
+            sum += text.codePointAt(i);
+        }
         // --End-->
-
         assertEquals(3655, sum);
     }
 
@@ -167,7 +207,7 @@ class StringTest {
         // こ - U+3053
         // れ - U+308c
         // <--Start
-        final String actual = null;
+        final String actual = String.valueOf("\u306a" + "\u306b" + "\u3053" + "\u308c");
         // --End-->
 
         assertEquals(expected, actual);
@@ -180,10 +220,32 @@ class StringTest {
 
         // TODO: Modify the following code to create new string from original String
         // <--Start
-        final String reversed = null;
+        final String reversed = new StringBuilder(original).reverse().toString();
         // --End-->
 
         assertEquals("654321", reversed);
+    }
+
+    @Test
+    void should_not_change_final_string_value() {
+        final char[] chars = new char[]{6, 5, 4, 3, 2, 1};
+        chars[0] = 'a';
+        char expectValueFromFinalChar = 'a';
+        assertEquals(expectValueFromFinalChar, chars[0]);
+    }
+
+    @Test
+    void should_not_change_final_string_array() {
+        final char[] chars = new char[]{'6', '5', '4', '3', '2', '1'};
+        char temp;
+        for (int itemIndex = 0; itemIndex < chars.length / 2; itemIndex++) {
+            temp = chars[itemIndex];
+            chars[itemIndex] = chars[chars.length - 1 - itemIndex];
+            chars[chars.length - 1 - itemIndex] = temp;
+        }
+
+        char[] expectChars = new char[]{'1', '2', '3', '4', '5', '6'};
+        assertArrayEquals(expectChars, chars);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -197,8 +259,8 @@ class StringTest {
 
         // TODO: Please change the value of the following 2 lines to pass the test.
         // <--start
-        Optional<Boolean> actualResultOfEqual = Optional.empty();
-        Optional<Boolean> actualResultOfEqualIgnoreCase = Optional.empty();
+        Optional<Boolean> actualResultOfEqual = Optional.of(false);
+        Optional<Boolean> actualResultOfEqualIgnoreCase = Optional.of(true);
         // --end-->
 
         assertEquals(equalResult, actualResultOfEqual);
@@ -208,14 +270,14 @@ class StringTest {
     @Test
     void should_get_code_point_count() {
         final String withSurrogatePairs =
-            new String(Character.toChars(0x20B9F)) + " is a character that you may not know";
+                new String(Character.toChars(0x20B9F)) + " is a character that you may not know";
 
         // TODO: please modify the following code to pass the test
         // <--start
         // TODO: please write down the result directly.
-        final int expectedCharLength = 0;
+        final int expectedCharLength = 39;
         // TODO: please call some method to calculate the result.
-        final int actualCodePointLength = 0;
+        final int actualCodePointLength = (int) withSurrogatePairs.codePoints().count();
         // --end-->
 
         assertEquals(expectedCharLength, withSurrogatePairs.length());
@@ -225,13 +287,13 @@ class StringTest {
     @Test
     void should_copy_all_code_point_to_array() {
         final String withSurrogatePairs =
-            new String(Character.toChars(0x20B9F)) + " is funny";
+                new String(Character.toChars(0x20B9F)) + " is funny";
 
         final int[] codePoints = getCodePointsFromString(withSurrogatePairs);
 
         assertArrayEquals(
-            new int[] {0x20B9F, (int)' ', (int)'i', (int)'s', (int)' ', (int)'f', (int)'u', (int)'n', (int)'n', (int)'y'},
-            codePoints);
+                new int[]{0x20B9F, (int) ' ', (int) 'i', (int) 's', (int) ' ', (int) 'f', (int) 'u', (int) 'n', (int) 'n', (int) 'y'},
+                codePoints);
     }
 
     @Test
@@ -243,16 +305,23 @@ class StringTest {
 
         // TODO: please modify the following code to pass the test
         // <--start
-        final String expectedText = null;
+        final String expectedText = "Hello, Harry. Next year, you will be 23.";
         // --end-->
 
         assertEquals(expectedText, text);
     }
 
     private int[] getCodePointsFromString(String withSurrogatePairs) {
-        // TODO: please implement the method to the pass the test
+        // TODO: PLEASE implement the method to the pass the test
         // <--start
-        throw new NotImplementedException();
+        int[] charArray = new int[Character.codePointCount(withSurrogatePairs.toCharArray(), 0, withSurrogatePairs.length())];
+        for (int charIndex = 0, codePointIndex = 0;
+             charIndex < withSurrogatePairs.length(); charIndex++) {
+            charArray[codePointIndex++] = Character.codePointCount(withSurrogatePairs.toCharArray(), 0, withSurrogatePairs.length());
+            // TODO: 2018/9/7 complete it
+        }
+
+        return charArray;
         // --end-->
     }
 
